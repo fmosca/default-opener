@@ -1,13 +1,11 @@
-#!/usr/bin/env python3
-#
-# Native messaging examples:
-#
-# https://github.com/mdn/webextensions-examples/blob/master/native-messaging/app/ping_pong.py
-
-import subprocess
+#! /usr/local/bin/python3
 import nativemessaging
+import webbrowser
+    
+nativemessaging.send_message(nativemessaging.encode_message('Listening'))
 
 while True:
-    receivedMessage = nativemessaging.get_message()
-    subprocess.call(['google-chrome-stable', receivedMessage['link']]);
-    nativemessaging.send_message(nativemessaging.encode_message(''))
+    message = nativemessaging.get_message()
+    if 'text' in message:
+        nativemessaging.send_message(nativemessaging.encode_message(message['text']))
+        webbrowser.open_new_tab(message['text'])

@@ -1,20 +1,20 @@
-var port = chrome.runtime.connectNative("default_opener");
+var port = chrome.runtime.connectNative('default_opener');
 
 port.onMessage.addListener((response) => {
   console.log("Received: " + response);
 });
 
 port.onDisconnect.addListener(() => {
-  console.log("Port was disconnected. Error:", chrome.runtime.lastError);
+  console.log("Disconnected", JSON.stringify(chrome.runtime.lastError));
 });
 
 function openUrl(url) {
   try {
-    port.postMessage({link: url});
+    port.postMessage({text: url});
   }
   catch(err) {
     port = chrome.runtime.connectNative("default_opener");
-    port.postMessage({link: url});
+    port.postMessage({text: url});
   }
 }
 
@@ -26,10 +26,14 @@ chrome.contextMenus.create({
   }
 });
 
+function allowHijack(url) {
+    return !(url.match(/^http[s]?:\/\/meet.google.com/))
+}
+
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if (request.hasOwnProperty("request")) {
-      if (request["request"] == "LAUNCH" && !sender.tab.pinned && sender.tab.windowId != 1) {
+      if (request["request"] == "LAUNCH" && !sender.tab.pinned && allowHijack(sender.tab.url)) {
         openUrl(sender.tab.url);
         chrome.tabs.remove(sender.tab.id);
       }
